@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      includeAssets: ["icon-192.png", "icon-512.png"],
       manifest: {
         name: "Stock Info & Électronique",
         short_name: "StockInfo",
@@ -14,6 +15,12 @@ export default defineConfig({
         theme_color: "#12141A",
         background_color: "#12141A",
         display: "standalone",
+        start_url: "/",
+        icons: [
+          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+        ]
       },
     }),
   ],
