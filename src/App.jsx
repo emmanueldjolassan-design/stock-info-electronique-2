@@ -133,7 +133,7 @@ function Loading() {
 // ---------------------------------------------------------------------------
 
 function Dashboard({ produits, ventes, mouvements }) {
-  const valeurStock = produits.reduce((s, p) => s + p.stock * p.prix_achat, 0);
+  const valeurStock = produits.reduce((s, p) => s + p.stock * p.prix_vente, 0);
   const lowStock = produits.filter((p) => p.stock <= p.seuil_alerte);
   const today = new Date().toISOString().slice(0, 10);
   const ventesJour = ventes.filter((v) => v.created_at?.slice(0, 10) === today).reduce((s, v) => s + v.total, 0);
@@ -215,7 +215,6 @@ function ProductForm({ initial, categories, produits, onAddCategory, onSave, onC
   const [newCat, setNewCat] = useState("");
   const [stock, setStock] = useState(initial?.stock ?? 0);
   const [seuil, setSeuil] = useState(initial?.seuil_alerte ?? 5);
-  const [prixAchat, setPrixAchat] = useState(initial?.prix_achat ?? 0);
   const [prixVente, setPrixVente] = useState(initial?.prix_vente ?? 0);
   const [saving, setSaving] = useState(false);
 
@@ -239,7 +238,6 @@ function ProductForm({ initial, categories, produits, onAddCategory, onSave, onC
       categorie_id: categorieId,
       stock: Number(stock),
       seuil_alerte: Number(seuil),
-      prix_achat: Number(prixAchat),
       prix_vente: Number(prixVente),
     };
     await onSave(product, isEdit);
@@ -283,7 +281,6 @@ function ProductForm({ initial, categories, produits, onAddCategory, onSave, onC
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1"><label className="text-xs" style={{ color: "var(--text-dim)" }}>Stock initial</label><input type="number" min="0" className={field} style={fieldStyle} value={stock} onChange={(e) => setStock(e.target.value)} disabled={isEdit} /></div>
           <div className="space-y-1"><label className="text-xs" style={{ color: "var(--text-dim)" }}>Seuil d'alerte</label><input type="number" min="0" className={field} style={fieldStyle} value={seuil} onChange={(e) => setSeuil(e.target.value)} /></div>
-          <div className="space-y-1"><label className="text-xs" style={{ color: "var(--text-dim)" }}>Prix d'achat</label><input type="number" min="0" className={field} style={fieldStyle} value={prixAchat} onChange={(e) => setPrixAchat(e.target.value)} /></div>
           <div className="space-y-1"><label className="text-xs" style={{ color: "var(--text-dim)" }}>Prix de vente</label><input type="number" min="0" className={field} style={fieldStyle} value={prixVente} onChange={(e) => setPrixVente(e.target.value)} /></div>
         </div>
         {isEdit && <div className="text-xs" style={{ color: "var(--text-dim)" }}>Le stock se modifie via les mouvements (entrées/sorties), pas ici.</div>}
