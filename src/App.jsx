@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext, createContext } from "react";
+ import React, { useState, useEffect, useMemo, useContext, createContext } from "react";
 import {
   LayoutGrid,
   Boxes,
@@ -427,7 +427,7 @@ function CategoryManager({ categories, produits, onAdd, onDelete, onClose }) {
 // Produits
 // ---------------------------------------------------------------------------
 
-function Produits({ produits, categories, onSaveProduct, onDeleteProduct, onAddCategory, onDeleteCategory }) {
+function Produits({ produits, allProductIds, categories, onSaveProduct, onDeleteProduct, onAddCategory, onDeleteCategory }) {
   const { devise } = useContext(SettingsContext);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Tous");
@@ -499,7 +499,7 @@ function Produits({ produits, categories, onSaveProduct, onDeleteProduct, onAddC
         </table>
       </div>
 
-      {formOpen && <ProductForm initial={editing} categories={categories} produits={produits} onAddCategory={onAddCategory} onSave={async (p, isEdit) => { await onSaveProduct(p, isEdit); setFormOpen(false); }} onClose={() => setFormOpen(false)} />}
+      {formOpen && <ProductForm initial={editing} categories={categories} produits={allProductIds} onAddCategory={onAddCategory} onSave={async (p, isEdit) => { await onSaveProduct(p, isEdit); setFormOpen(false); }} onClose={() => setFormOpen(false)} />}
       {catManagerOpen && <CategoryManager categories={categories} produits={produits} onAdd={onAddCategory} onDelete={onDeleteCategory} onClose={() => setCatManagerOpen(false)} />}
       {toDelete && (
         <ConfirmDialog
@@ -848,23 +848,27 @@ function MainApp({ session }) {
   const [produits, setProduits] = useState([]);
   const [ventes, setVentes] = useState([]);
   const [mouvements, setMouvements] = useState([]);
-  const [devise, setDevise] = useState("F");
+    const [devise, setDevise] = useState("F");
+  const [allProductIds, setAllProductIds] = useState([]);
 
   const fetchAll = async () => {
-    const [{ data: cats }, { data: prods }, { data: vts }, { data: mvts }, { data: params }] = await Promise.all([
+    const [{ data: cats }, { data: prods }, { data: vts }, { data: mvts }, { data: params }, { data: allIds }] = await Promise.all([
       supabase.from("categories").select("*").order("nom"),
       supabase.from("produits").select("*, categorie:categories(nom)").eq("actif", true).order("nom"),
       supabase.from("ventes").select("*").order("created_at", { ascending: false }).limit(20),
       supabase.from("mouvements_stock").select("*, produit:produits(nom)").order("created_at", { ascending: false }).limit(30),
       supabase.from("parametres").select("*").eq("id", 1).single(),
+      supabase.from("produits").select("id"),
     ]);
     setCategories(cats || []);
     setProduits((prods || []).map((p) => ({ ...p, categorie_nom: p.categorie?.nom || "—" })));
     setVentes(vts || []);
     setMouvements((mvts || []).map((m) => ({ ...m, produit_nom: m.produit?.nom || m.produit_id })));
     if (params?.devise) setDevise(params.devise);
+    setAllProductIds(allIds || []);
     setLoading(false);
   };
+
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -920,7 +924,7 @@ function MainApp({ session }) {
 
   const TABS = {
     dashboard: { label: "Tableau de bord", icon: LayoutGrid, component: <Dashboard produits={produits} ventes={ventes} mouvements={mouvements} /> },
-    produits: { label: "Produits", icon: Boxes, component: <Produits produits={produits} categories={categories} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} onAddCategory={addCategory} onDeleteCategory={deleteCategory} /> },
+    produits: { label: "Produits", icon: Boxes, component: <Produits produits={produits} allProductIds={allProductIds} categories={categories} onSaveProduct={saveProduct} onDeleteProduct={deleteProduct} onAddCategory={addCategory} onDeleteCategory={deleteCategory} /> },
     ventes: { label: "Ventes", icon: Receipt, component: <Ventes produits={produits} onCheckout={checkout} /> },
     mouvements: { label: "Mouvements", icon: ArrowLeftRight, component: <Mouvements mouvements={mouvements} /> },
     rapports: { label: "Rapports", icon: BarChart3, component: <Rapports /> },
